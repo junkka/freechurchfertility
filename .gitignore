@@ -1,0 +1,6 @@
+data/spells_orig.rda
+data/spells.rda
+sources
+figures/*
+!figures/.gitkeep
+init.R
