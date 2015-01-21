@@ -49,9 +49,7 @@ calc_tmft <- function(x) {
   x <- x %>% group_by(affiliation, cohort, age_group) %>% 
   summarise(
     tmfr = sum(event)/sum(duration), 
-    n = sum(event),
-    se = tmfr/sqrt(n),
-    ci = 1.96 * se
+    n = sum(event)
   ) %>% 
   group_by(affiliation, cohort) %>% 
   mutate(indexed_tmfr = tmfr/tmfr[age_group == min(age_group)])
@@ -64,25 +62,20 @@ yall  <- calc_tmft(mutate(y, cohort = 'All', affiliation = 'All'))
 
 # calculate total marital fertility rates
 sum_tmfr <- rbind(
-  ycr %>% 
-  group_by(affiliation, cohort) %>% 
-  summarise(
-    tmfr    = sum(tmfr*5, na.rm=T),
-    n       = sum(n),
-    se      = tmfr/sqrt(n),
-    ci_low  = tmfr - (se * 1.96),
-    ci_high = tmfr + (se * 1.96)
-  ),
-  yc %>% 
-  group_by(affiliation, cohort) %>% 
-  summarise(
-    tmfr    = sum(tmfr*5, na.rm=T),
-    n       = sum(n),
-    se      = tmfr/sqrt(n),
-    ci_low  = tmfr - (se * 1.96),
-    ci_high = tmfr + (se * 1.96)
-  )
-)
+    ycr %>% 
+    group_by(affiliation, cohort) %>% 
+    summarise(
+      tmfr    = sum(tmfr*5, na.rm=T),
+      n       = sum(n)
+    ),
+    yc %>% 
+    group_by(affiliation, cohort) %>% 
+    summarise(
+      tmfr    = sum(tmfr*5, na.rm=T),
+      n       = sum(n)
+    )
+  ) %>% 
+  as.data.frame()
 
 y <- rbind(yall, yc, yr, ycr)
 
@@ -92,6 +85,7 @@ colnames(sum_tmfr)[1] <- "Affiliation"
 ggplot(sum_tmfr, aes(cohort, tmfr, group = Affiliation, linetype = Affiliation)) + 
   geom_point() + 
   geom_line() + 
+  ylim(min(sum_tmfr$tmfr), min(sum_tmfr$tmfr) + 2.6) + 
   labs(x = '', y = 'TMFR') +
   cust_theme() + 
   theme(legend.position = "bottom")

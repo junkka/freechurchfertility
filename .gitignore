@@ -4,3 +4,4 @@ sources
 figures/*
 !figures/.gitkeep
 init.R
+.Rhistory

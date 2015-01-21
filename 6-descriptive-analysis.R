@@ -96,6 +96,7 @@ levels(marr$cohort) <- paste(levels(marr$cohort), n$n, sep = '\nn = ')
 p1 <- ggplot(marr, aes(cohort, value, group = affiliation, linetype = affiliation)) + 
   geom_line() +
   geom_point() +
+  ylim(min(marr$value) ,min(marr$value) + 10) +
   labs(x = 'Cohort', y = 'Years') +
   cust_theme() + 
   theme(
@@ -113,6 +114,7 @@ levels(first$cohort) <- paste(levels(first$cohort), n$n, sep = '\nn = ')
 p2 <- ggplot(first, aes(cohort, value, group = affiliation, linetype = affiliation)) + 
   geom_line() +
   geom_point() +
+  ylim(min(first$value), min(first$value) + 0.4) +
   labs(x = 'Cohort', y = 'Years') +
   cust_theme() + 
   theme(
@@ -129,6 +131,7 @@ levels(last$cohort) <- paste(levels(last$cohort), n$n, sep = '\nn = ')
 p3 <- ggplot(last, aes(cohort, value, group = affiliation, linetype = affiliation)) + 
   geom_line() +
   geom_point() +
+  ylim(min(last$value), min(last$value) + 8) +
   labs(x = 'Cohort', y = 'Years') +
   cust_theme() + 
   theme(
@@ -145,6 +148,7 @@ levels(interval$cohort) <- paste(levels(interval$cohort), n$n, sep = '\nn = ')
 p4 <- ggplot(interval, aes(cohort, value, group = affiliation, linetype = affiliation)) +
   geom_line() +
   geom_point() +
+  ylim(min(interval$value), min(interval$value) + 1.1) +
   labs(x = 'Cohort', y = 'Years') +
   cust_theme() + 
   theme(
