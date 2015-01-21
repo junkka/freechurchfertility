@@ -14,4 +14,4 @@ The `agg_mfrt` dataset contains period marital fertility rates for Sweden taken 
 
 ## Libraries
 
-The `libs` directory holds all helper functions, moste are used for formating tables and plots. The `make_variables.R` script holds functions that transforms the source data into specific forms that is used in multiple scripts. 
+The `libs` directory holds all helper functions, most are used for formating tables and plots. The `make_variables.R` script holds functions that transforms the source data into specific forms that is used in multiple scripts. 
