@@ -7,17 +7,20 @@ library(plyr)
 library(tidyr)
 library(dplyr)
 
-sources <- paste0('scripts/', list.files('scripts', pattern="*.R"))
+sources <- paste0('libs/', list.files('libs', pattern="*.R"))
 sapply(sources, source, .GlobalEnv)
 
 load("data/spells.rda")
 
+# make_variables() imported from libs/make_variables()
 spells2 <- make_variables(spells)
 
+# recode variables
 x <- spells %>% 
   mutate(
     age1 = diff_days(event_date, m_birth)/365.25,
     age2 = diff_days(event2_date, m_birth)/365.25,
+    # recode affiliation 4 (birth cohort free-church affiliation) to 2 (free-church affiliation)
     affiliation = ifelse(affiliation == 4, 2, affiliation),
     affiliation = factor(affiliation, labels = c("State","Free-church")),
     cohort      = factor(
@@ -26,18 +29,22 @@ x <- spells %>%
     event = ifelse(event2_type == "birth", 1, 0)
   )
 
+# split data into 5 year age groups from 15-50
 x_age_split <- survSplit(data = x, cut = seq(15,50, 5), end = "age2", event = "event", start = "age1", episode = "group") %>% 
   mutate(group = (group * 5) + 10)
 
+# Calculate duration in each observation
 y <- x_age_split %>% 
   mutate(
     age_group = group,
     duration  = age2 - age1
   ) %>% 
+  # Keep only age groups 20-25 - 40-45
   filter(age_group > 15 & age_group < 50) %>%
   select(affiliation, cohort, duration, event, age_group)
 
 
+# calculate age-specific marital fertility rates
 calc_tmft <- function(x) {
   x <- x %>% group_by(affiliation, cohort, age_group) %>% 
   summarise(
@@ -55,6 +62,7 @@ yc    <- calc_tmft(mutate(y, affiliation = 'All'))
 yr    <- calc_tmft(mutate(y, cohort = 'All'))
 yall  <- calc_tmft(mutate(y, cohort = 'All', affiliation = 'All'))
 
+# calculate total marital fertility rates
 sum_tmfr <- rbind(
   ycr %>% 
   group_by(affiliation, cohort) %>% 
@@ -80,6 +88,7 @@ y <- rbind(yall, yc, yr, ycr)
 
 colnames(sum_tmfr)[1] <- "Affiliation"
 
+# make plots
 ggplot(sum_tmfr, aes(cohort, tmfr, group = Affiliation, linetype = Affiliation)) + 
   geom_point() + 
   geom_line() + 
@@ -93,7 +102,6 @@ tmfr_plot <- y %>%
 
 ggplot(tmfr_plot, aes(age_group, tmfr, linetype=cohort)) + 
   geom_line() + 
-  # scale_colour_manual(values = c("#7D00C2", "#87CA00")) +
   facet_wrap(~affiliation, ncol=4) +
   labs(x = "Age group", y = "TMFR") +
   cust_theme() + 

@@ -1,41 +1,52 @@
 # 1-sample-data.R
 
 
-# The main data for this study consists of digitalized parish registers from the Demographic Database, Umeå university. As the original data from DDB cannot be distributed publicly we provide a generated sample for testing of code. 
+# The main data for this study consists of digitalized parish registers from the 
+#   Demographic Database, Umeå university. As the original data from DDB cannot 
+#   be distributed publicly we provide a generated sample for testing of code. 
 
 # ## Original spells data
 
-# The original dataset consists of event history spells, where each row is a time spell in a couples life from one event to another. In this data the spells consists of events of marriage, births, child deaths and end of marriage. 
+# The original dataset consists of event history spells, where each row is a time 
+#   spell in a couples life from one event to another. In this data the spells 
+#   consists of events of marriage, births, child deaths and end of marriage. 
 
 # ### Variables
 
 # | Variable              | Type    | Descripition
-# |:----------------------|:--------|:----------------------------------|
-# | eid                   | num     | Unique event id                   |
-# | pid                   | num     | Unique marriage id                |
-# | event_date            | POSIXct | Start of observation              |
-# | event2_date           | POSIXct | End of observation                |
-# | event2_type           | chr     | End event type                    |
-# | prev_birth            | POSIXct | Date of birth of previously born child |
-# | parity                | num     | Parity of previously born child   |
-# | first_birth           | POSIXct | Date of birth of first born child |
-# | occupation            | int     | Occupational group                |
-# | affiliation           | num     | Religious affiliation             |
-# | economy               | int     | Main economic region residense    |
-# | cohort                | num     | Cohort                            |
-# | m_birth               | POSIXct | Mothers birth date                |
-# | marr_date             | POSIXct | Marriage date                     |
-# | complete_reproduction | int     | Indicator of complete reproductive history |
-# | offspring             | num     | Offspring set                     |
-# | infant_death          | num     | Indicator dor if previously born childs died within a year of birth |
+# |:----------------------|:--------|:--------------------------------------------|
+# | eid                   | num     | Unique event id                             |
+# | pid                   | num     | Unique marriage id                          |
+# | event_date            | POSIXct | Start of observation                        |
+# | event2_date           | POSIXct | End of observation                          |
+# | event2_type           | chr     | End event type                              |
+# | prev_birth            | POSIXct | Date of birth of previously born child      |
+# | parity                | num     | Parity of previously born child             |
+# | first_birth           | POSIXct | Date of birth of first born child           |
+# | occupation            | int     | Occupational group                          |
+# | affiliation           | num     | Religious affiliation                       |
+# | economy               | int     | Main economic region residense              |
+# | cohort                | num     | Cohort                                      |
+# | m_birth               | POSIXct | Mothers birth date                          |
+# | marr_date             | POSIXct | Marriage date                               |
+# | complete_reproduction | int     | Indicator of complete reproductive history  |
+# | offspring             | num     | Gender composition of surviving children    |
+# | infant_death          | num     | Indicator for if previously born childs     |
+# |                       |         | died within a year of birth                 |
 
 # ## Generated spells data
 
-# The generated data is built from the `fert` data in the `eha` package [@brostrom2014]. This data consists of fertility spells from 19th century Skellefteå, Sweden. The `fert` data is combined with sampled data from the original spells data. However as the `fert` data only consist of marriage, birth and end events the sample data do not have any child death events. Thereby the time varying variables of offspring and infnat_death is set at birth events, randomly sampled from the original data.
+# The generated data is built from the `fert` data in the `eha` package (Broström 2014). 
+#   This data consists of fertility spells from 19th century Skellefteå, Sweden. The 
+#   `fert` data is combined with sampled data from the original spells data. However as 
+#   the `fert` data only consist of marriage, birth and end events the sample data do 
+#   not have any child death events. Thereby the time varying variables of offspring and 
+#   infant_death is set at birth events, randomly sampled from the original data.
 
 # ## Sample generation
 
-# The generation of the sample is made through this function. where `x` is the original spells data object.
+# The generation of the sample is made through this function. where the parameter `spells` 
+#   is the original spells data object.
 
 
 make_sample <- function(spells) {
@@ -64,6 +75,7 @@ make_sample <- function(spells) {
       occupation, affiliation, economy, cohort, complete_reproduction) %>% 
     filter(!is.na(cohort))  
   
+  # create sample of static variables
   mother_sample <- sample_n(as.data.frame(spells_couples), n_mothers)
   # get all mothers in new_fert data 
   mothers <- new_fert %>% filter(is.na(prev.ivl)) %>% 
@@ -113,7 +125,6 @@ make_sample <- function(spells) {
     ) %>% 
     filter(!is.na(marr_date))
 
-  environ <- environment()
   save(spells, file = 'data/spells_gen.rda', compress = 'xz')
   return(spells)
 }

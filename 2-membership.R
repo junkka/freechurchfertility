@@ -7,10 +7,12 @@ library(tidyr)
 library(plyr)
 library(dplyr)
 
-sources <- paste0('scripts/', list.files('scripts', pattern="*.R"))
+sources <- paste0('libs/', list.files('libs', pattern="*.R"))
 sapply(sources, source, .GlobalEnv)
 
+# load data
 load("data/movement.rda")
+# format column names
 colnames(movement) <- tolower(colnames(movement)) 
 colnames(movement) <- gsub('^me[dl]{2}', 'medl', colnames(movement))
 
@@ -28,8 +30,11 @@ between <- function(a, b, d){
   return(x)
 }
 
+# Tidy up data by gathering on year and member to create one observation 
+#   per year and organization
 long <- movement %>% 
   gather(year, medl, -idnummer:-nedlagg2t) %>% 
+  # Recode NA values
   mutate(
     medl      = replace_na(medl),
     nedlagg1f = replace_na0(nedlagg1f),
@@ -38,6 +43,7 @@ long <- movement %>%
     nedlagg2t = replace_na0(nedlagg2t),
     year      = as.integer(gsub('medl', '', year))
   ) %>% 
+  # Remove gaps
   filter(
     year >= inledar & 
     year <= slutar & 
@@ -45,6 +51,7 @@ long <- movement %>%
     between(year, nedlagg2f, nedlagg2t) == FALSE
   ) 
 
+# Interpolate missing values
 approx_na <- function(year, medl) {
   if (length(na.omit(medl)) < 2){
     return(as.numeric(medl))

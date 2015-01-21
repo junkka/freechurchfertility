@@ -7,13 +7,16 @@ library(plyr)
 library(dplyr)
 
 # load sources
-sources <- paste0('scripts/', list.files('scripts', pattern="*.R"))
+sources <- paste0('libs/', list.files('libs', pattern="*.R"))
 sapply(sources, source, .GlobalEnv)
 
 load("data/spells.rda")
 
+# Get spells data for complete observations
+# simle_spells() imported from libs/make_variables.R
 complete <- simple_spells(spells) %>% 
    transmute(
+    # recode affiliation 4 (birth cohort free-church affiliation) to 2 (free-church affiliation)
     affiliation = ifelse(affiliation == 4, 2, affiliation),
     affiliation = factor(affiliation, labels = c("State","Free-church")),
     cohort      = factor(
@@ -28,15 +31,18 @@ complete <- simple_spells(spells) %>%
     start, stop, prevint, nextint, closed, last, last_date, parity
   ) %>% arrange(pid, stop) %>% 
   group_by(pid) %>% 
+  # To controll for complete observations create age at last event and an indicator for  
+  #   observed last birth event by couple
   mutate(
     last_age = max(mothers_age, na.rm = T),
     last_ev = max(last)
   ) %>% ungroup() %>% 
   mutate(
     complete_reproduction = ifelse(last_age >= 45 & last_ev == 1, TRUE, FALSE)
-  ) %>% filter(complete_reproduction, marr_age_wom <= 45 & marr_age_wom >= 15)
+  ) %>% 
+  filter(complete_reproduction, marr_age_wom <= 45 & marr_age_wom >= 15)
 
-# get complete by marriage, by religion and by all
+# calculate complete marriages by cohort, affiliation and in total
 com_cohort <- complete %>% select(pid, group = cohort) %>% 
   distinct() %>% 
   group_by(group) %>% 
@@ -50,8 +56,11 @@ com_all <- complete %>% mutate(group = "Total") %>% select(pid, group) %>%
   group_by(group) %>% 
   summarise(complete = n())
 
+# Get spells data for all observations
+# make_variables() imported from libs/make_variables()
 spells2 <- make_variables(spells)
 
+# calculate number of marriages and observed births by cohort, affiliation and in total
 marr <- spells2 %>% 
   select(pid, event, cohort) %>% 
   mutate(group = cohort) %>% 
@@ -77,28 +86,17 @@ all <- spells2 %>%
     births = sum(event, na.rm=T)
   ) %>% cbind(com_all[ ,2])
 
-desc1 <- rbind(marr, all)
-desc2 <- rbind(aff, all)
+# combine summary statistics
+desc <- rbind(marr, aff, all)
 
-colnames(desc1) <- c('Group','Marriages','Births', 'Complete marriages')
-colnames(desc2) <- colnames(desc1)
+colnames(desc) <- c('Group','Marriages','Births', 'Complete marriages')
 
+# make table
 print(
-  xtable(as.data.frame(desc1),
+  xtable(as.data.frame(desc),
          caption="Number of events and marriges by cohort"
          ),
-    file="figures/desc1.tex",
-    table.placement = "!h",
-    caption.placement="bottom",
-    comment=FALSE,
-    include.rownames=FALSE,
-    type="latex"
-  )
-print(
-  xtable(as.data.frame(desc2),
-         caption="Number of events and marriges by affiliation."
-         ),
-    file="figures/desc2.tex",
+    file="figures/table1.tex",
     table.placement = "!h",
     caption.placement="bottom",
     comment=FALSE,
@@ -106,7 +104,7 @@ print(
     type="latex"
   )
 
-
+# get first observation by couple
 df_entry <- spells2 %>% 
   arrange(pid, start_date) %>% 
   group_by(pid) %>% 
@@ -114,7 +112,7 @@ df_entry <- spells2 %>%
   mutate(event = 'entry', date = lubridate::year(marr_date)) %>% 
   select(event, date, cohort, affiliation)
 
-
+# get last observation by couple
 df_exit <- spells2 %>% 
   arrange(pid, stop_date) %>% 
   group_by(pid) %>% 

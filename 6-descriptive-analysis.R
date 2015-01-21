@@ -6,14 +6,16 @@ library(plyr)
 library(dplyr)
 
 # load sources
-sources <- paste0('scripts/', list.files('scripts', pattern="*.R"))
+sources <- paste0('libs/', list.files('libs', pattern="*.R"))
 sapply(sources, source, .GlobalEnv)
 
 
 load('data/spells.rda')
 
 simp <- simple_spells(spells) %>% 
-   transmute(
+  # reccode variables
+  transmute(
+    # recode affiliation 4 (birth cohort free-church affiliation) to 2 (free-church affiliation)
     affiliation = ifelse(affiliation == 4, 2, affiliation),
     affiliation = factor(affiliation, labels = c("State","Free-church")),
     cohort      = factor(
@@ -28,6 +30,8 @@ simp <- simple_spells(spells) %>%
     start, stop, prevint, nextint, closed, last, last_date, parity
   ) %>% arrange(pid, stop) %>% 
   group_by(pid) %>% 
+  # To controll for complete observations create age at last event and an indicator for  
+  #   observed last birth event by couple
   mutate(
     last_age = max(mothers_age, na.rm = T),
     last_ev = max(last)
@@ -36,7 +40,7 @@ simp <- simple_spells(spells) %>%
     complete_reproduction = ifelse(last_age >= 45 & last_ev == 1, TRUE, FALSE)
   )
 
-# Marriage_age
+# Get marriage_age
 marr_dat <- simp %>% 
   filter(
     parity == 0,
@@ -48,6 +52,7 @@ marr_dat <- simp %>%
   ) %>% 
   filter(marr_age_wom <= 45 & marr_age_wom >= 15)
 
+# get time between marriage and first birth
 first_dat <- simp %>% 
   filter(
     parity == 0,
@@ -57,7 +62,7 @@ first_dat <- simp %>%
     cohort, affiliation, economy, last, closed
   ) 
 
-# stoping
+# get age at last birth
 last_dat <- simp %>% 
   filter(
     complete_reproduction,
@@ -70,7 +75,7 @@ last_dat <- simp %>%
   group_by(pid) %>% 
   filter(rank(eid, ties.method="first")==1, pid %in% marr_dat$pid)
 
-# interval
+# get time between closed births
 int_dat <- simp %>% 
   filter(
     closed == 1,
@@ -81,6 +86,7 @@ int_dat <- simp %>%
     cohort, affiliation, economy
   )
 
+# make marriage age plot, summarise marriage age by cohort and affiliation
 marr <- marr_dat %>% 
   group_by(cohort, affiliation) %>% 
   summarise(value = mean(marr_age_wom, na.rm = T)) 
@@ -96,6 +102,7 @@ p1 <- ggplot(marr, aes(cohort, value, group = affiliation, linetype = affiliatio
     legend.position="bottom")
 ggsave('figures/figure7-marriage-age.jpg', height = 3, plot = p1)
 
+# make first birth plot, summarise by cohort and affiliation
 first <- first_dat %>% 
   filter(first_int < 5) %>% 
   group_by(cohort, affiliation) %>% 
@@ -112,6 +119,7 @@ p2 <- ggplot(first, aes(cohort, value, group = affiliation, linetype = affiliati
     legend.position="bottom")
 ggsave('figures/figure8-first-interval.jpg', height = 3, plot = p2)
 
+# make age at last birth plot, summarise by cohort and affiliation
 last <- last_dat %>% 
   group_by(cohort, affiliation) %>% 
   summarise(value = mean(last_age_wom, na.rm = T)) 
@@ -127,6 +135,7 @@ p3 <- ggplot(last, aes(cohort, value, group = affiliation, linetype = affiliatio
     legend.position="bottom")
 ggsave('figures/figure9-stop-age.jpg', height = 3, plot = p3)
 
+# make time between births plot, summarise by cohort and affiliation
 interval <- int_dat %>% 
   group_by(cohort, affiliation) %>% 
   summarise(value = mean(interval, na.rm = T))

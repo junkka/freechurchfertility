@@ -8,31 +8,39 @@ library(tidyr)
 library(dplyr)
 
 # load sources
-sources <- paste0('scripts/', list.files('scripts', pattern="*.R"))
+sources <- paste0('libs/', list.files('libs', pattern="*.R"))
 sapply(sources, source, .GlobalEnv)
 
+#load data
 load("data/spells.rda")
+
+# Recode data
+# make_variables() imported from libs/make_variables()
 spells2 <- make_variables(spells)
 
+# format data for Nelson-ahlen plots
 f <- spells2 %>% 
   mutate(
     start2 = start2/12,
     stop2  = stop2/12
   )
+# get cumulative hazards of affiliation by cohort
 res <- ddply(f, .(cohort), function(a) {
   fit <- coxph(Surv(start2, stop2, event) ~strata(affiliation), data = a)
+  # ggsurv() imported from libs/ggsurv.R
   ggsurv(fit)
 })
 colnames(res)[10] <- "Affiliation"
 ggplot(res, aes(time, cumhaz, group = Affiliation, linetype = Affiliation)) + 
   geom_step() +
-  # scale_colour_manual(values = c("#7D00C2", "#87CA00")) +
   coord_cartesian(xlim = c(0, 30)) + 
   facet_grid(.~cohort) + 
   cust_theme() +
   labs(x = 'Years since first birth', y = 'Cumulative hazard') +
   theme(legend.position = "bottom")
 ggsave('figures/figure11-na.jpg', height = 3)
+
+# fit cox regressions
 
 fit_context <- coxph(
   Surv(start2, stop2, event) 
@@ -97,6 +105,7 @@ fit_state <- coxph(
     + strata(parity) + cluster(pid), 
   data = spells2[spells2$affiliation == "State", ])
 
+# combine results into one table and print tables
 res  <- res_table(fit_context, fit_state, fit_free, cilevel = 0.95)
 levels(res$var) <- c(
   'Affiliation', 'Age group', 'Occupation', 'Gender of surviving children', 'Region', 
@@ -147,8 +156,11 @@ print(
   add.to.row = comment(pres)
 )
 
+# Calculate frequencies of birth events by model and variable
+# ============================================================
+
+# Define function to calculate frequencies by variable for a model
 ff <- function(param) {
-  # Function content
   births <- param %>% filter(event == 1)
   res <- rbind(
     births %>% 
@@ -190,17 +202,19 @@ ff <- function(param) {
   return(res)
 }
 
+# get frequency statistics by cohort affiliation and total
 spells2$infant_death <- factor(as.logical(spells2$infant_death))
 cres <- ddply(spells2, .(cohort), ff) %>% rename(model = cohort)
 rres <- ddply(spells2, .(affiliation), ff) %>% rename(model = affiliation)
 res_long <- rbind(cres, rres, ff(spells2) %>% mutate(model = 'All'))
 
+# calculate proportions
 res <- res_long %>% 
   mutate(value = paste(round(freq * 100, 1), ' (', n, ')', sep = '')) %>% 
   select(model, value, level, var) %>% 
   spread(model, value)
 
-# pres <- format_rt(res)
+# format and print results table
 res$index   <- seq_len(nrow(res))
 res$level   <- paste(' - ', res$level)
 vars        <- res[c(1:length(unique(res$var))), ]

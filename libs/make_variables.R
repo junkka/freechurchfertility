@@ -27,29 +27,34 @@ make_variables <- function(spells) {
 
 
       # Create late entry of X months
-      x      = 9,
-      start  = ifelse(start < x, x, start),
-      start2 = ifelse(start == x, start2 + x, start2),
-      start3 = ifelse(start == x, start3 + x, start3)
+      first_diff = 9 - start,
+      start  = ifelse(first_diff > 0, 9, start),
+      start2 = ifelse(first_diff > 0, start2 + first_diff, start2),
+      start3 = ifelse(first_diff > 0, start3 + first_diff, start3)
     ) %>% 
     filter(
-      start2 < stop2 & start != stop & start < stop
+      start2 < stop2 & start < stop
     ) %>% 
+    # recode variables
     mutate(
+      # combine urban and costal parishes to one group
       economy     = ifelse(economy == 2, 1, economy),
       economy     = factor(economy, labels=c("Rural","Coastal")),
       cohort      = factor(
                       cohort, 
                       labels = c("Marriage cohort 1","Marriage cohort 2", "Birth cohort")),
-      # cohort2      = factor(ifelse(cohort == "Birth cohort", "2", "1")),
+      # recode affiliation 4 (birth cohort free-church affiliation) to 2 (free-church affiliation)
       affiliation = ifelse(affiliation == 4, 2, affiliation),
       affiliation = factor(affiliation, labels = c("State","Free-church")),
+      # husbands occupational group, combine high and middle to one group
       occupation  = ifelse(occupation == 1, 2, occupation),
       occupation  = factor(occupation, 
                       labels = c("Upper/Middle","Farmer","Farmworker","Industrial worker","other")),
       occupation  = relevel(occupation, "Farmer"),
+      # label gender of surviving children
       offspring   = factor(offspring, 
                       labels = c("Mixed", "Only sons", "Only daughters", "None")),
+      # create age group for mother at previous birth
       mothers_age = as.numeric(difftime(prev_birth, m_birth, units="days")/365.25),
       age_group   = cut(
                       mothers_age, 
@@ -91,7 +96,7 @@ make_variables <- function(spells) {
       marr_date,
       complete_reproduction
     )
-
+  # recode NA valus in infant death as child alive (0)
   spells$infant_death[is.na(spells$infant_death)] <- 0
   
   return(spells)

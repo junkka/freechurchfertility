@@ -12,7 +12,6 @@ The `movement` data is a sample of the popular movement archive dataset, contain
 
 The `agg_mfrt` dataset contains period marital fertility rates for Sweden taken from Hofsten & Lundström (1976).
 
-## Helper functions
+## Libraries
 
-The scripts directory holds all helper functions that is mainly used for formating tables and plots.
-
+The `libs` directory holds all helper functions, moste are used for formating tables and plots. The `make_variables.R` script holds functions that transforms the source data into specific forms that is used in multiple scripts. 

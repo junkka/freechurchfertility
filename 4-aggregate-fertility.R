@@ -8,7 +8,7 @@ library(plyr)
 library(dplyr)
 
 # load sources
-sources <- paste0('scripts/', list.files('scripts', pattern="*.R"))
+sources <- paste0('libs/', list.files('libs', pattern="*.R"))
 sapply(sources, source, .GlobalEnv)
 
 load('data/agg_mfrt.rda')
