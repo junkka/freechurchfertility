@@ -88,7 +88,6 @@ make_variables <- function(spells) {
       offspring,
       economy,
       cohort,
-      # cohort2,
       first,
       exit,
       start_date,
