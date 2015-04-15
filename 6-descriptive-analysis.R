@@ -154,3 +154,26 @@ p4 <- ggplot(interval, aes(cohort, value, group = affiliation, linetype = affili
   theme(
     legend.position="bottom")
 ggsave('figures/figure10-spacing.jpg', height = 3, plot = p4)
+
+## number of premarital conceptions by cohort and affiliation
+
+n <- first_dat %>% group_by(cohort, affiliation) %>% summarise(n = n())
+d <- first_dat %>% 
+  mutate(
+    Conception = ifelse((first_int - 0.751) < 0, 1, 2)
+  ) %>% 
+  group_by(affiliation, cohort) %>% 
+  mutate(all = n()) %>% 
+  ungroup %>% group_by(affiliation, cohort, Conception) %>% 
+  summarise(concep = n()/mean(all)) %>% 
+  mutate(Conception = factor(Conception, labels = c("Pre marriage", "Post marriage")))
+
+# get time between marriage and first
+
+p5 <- ggplot(d, aes(cohort, concep, fill = Conception)) + 
+  geom_bar( stat="identity", color = "black") + 
+  scale_fill_manual(values = c("white", "grey")) +
+  facet_wrap(~affiliation) + 
+  labs(x = "Cohort", y = "Freqency") + 
+  cust_theme() +
+  theme(legend.position = "bottom")
