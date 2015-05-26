@@ -1,6 +1,6 @@
 # Instruction for replicating analysis
 
-This project contained R scripts for replicating the figures and tables in article *"Gender and fertility within the free churches in northern Sweden, 1860-1921"*. All figures and tables except for the map (Figure 1) is produced through these scripts. The analysis is split into 7 scripts. 
+This project contained R scripts for replicating the analysis in the article "Gender and fertility within the free churches in the Sundsvall region, Sweden, 1860-1921" (Junkka & Edvinsson, 2015). All figures and tables except for the map (Figure 1) is produced through these scripts. The analysis is split into 7 scripts. 
 
 To re-run the full analysis source the `run-all.R` script.
 
@@ -15,3 +15,7 @@ The `agg_mfrt` dataset contains period marital fertility rates for Sweden taken 
 ## Libraries
 
 The `libs` directory holds all helper functions, most are used for formating tables and plots. The `make_variables.R` script holds functions that transforms the source data into specific forms that is used in multiple scripts. 
+
+## References
+
+Junkka, J., & Edvinsson, S. (2015). Gender and fertility within the free churches in the Sundsvall region, Sweden, 1860-1921. The History of the Family. [doi: 10.1080/1081602X.2015.1043929](http://doi.org/10.1080/1081602X.2015.1043929)
