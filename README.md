@@ -1,6 +1,6 @@
 # Instruction for replicating analysis
 
-This project contained R scripts for replicating the analysis in the article "Gender and fertility within the free churches in the Sundsvall region, Sweden, 1860-1921" (Junkka & Edvinsson, 2015). All figures and tables except for the map (Figure 1) is produced through these scripts. The analysis is split into 7 scripts. 
+This project contained R scripts for replicating the analysis in the article "Gender and fertility within the free churches in the Sundsvall region, Sweden, 1860-1921" ([Junkka & Edvinsson, 2015](http://doi.org/10.1080/1081602X.2015.1043929)). All figures and tables except for the map (Figure 1) is produced through these scripts. The analysis is split into 7 scripts. 
 
 To re-run the full analysis source the `run-all.R` script.
 
